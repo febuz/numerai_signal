@@ -279,25 +279,3 @@ if __name__ == '__main__':
         logger.warning("cuDF or cuPy not installed. Skipping cuDF test.")
     except Exception as e:
         logger.error(f"Error during cuDF test: {e}")
-
-```
-The file `src/submission_generator.py` has been created with the `generate_submission_file` function.
-
-**Key features implemented:**
-*   Takes `model`, `live_features_df` (already pruned to selected features), `original_live_df_ids`, `feature_names`, and `submission_filepath` as input.
-*   Selects features from `live_features_df` based on `feature_names` to ensure correct columns and order.
-*   Generates predictions using `model.predict()`. It assumes the model's predict method is compatible with the input DataFrame type (pandas/cuDF).
-*   Constructs the submission DataFrame using `numerai_ticker` and `friday_date` from `original_live_df_ids`.
-    *   Includes a fallback to rename 'ticker' to 'numerai_ticker' if the latter is not found.
-*   Adds predictions to the 'signal' column.
-*   Ensures `friday_date` is an integer (YYYYMMDD format). If it's a datetime object, it's converted.
-*   Renames the date column to `friday_date` if it was different (e.g. `target_col_name_in_ids` was different).
-*   Saves the final DataFrame with columns `numerai_ticker,friday_date,signal` to a CSV file without the index.
-*   Creates the output directory if it doesn't exist.
-*   Includes an `if __name__ == '__main__':` block with example usage for both pandas and cuDF DataFrames (if cuDF is available).
-
-This function provides the core logic for generating the submission file. The next step is to integrate this into `main.py` and update the configuration.
-
-I will now proceed to update `config/config.py`.The file `src/submission_generator.py` has been created with the `generate_submission_file` function. This function handles the logic for generating predictions on live data and formatting them into the required CSV submission file format. It includes error checking, support for both pandas and cuDF DataFrames, and an example usage block.
-
-Next, I will update `config/config.py` to include the `SUBMISSION_PARAMS`.

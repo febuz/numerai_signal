@@ -150,10 +150,6 @@ if config_dict:
         "MODEL_FOR_SUBMISSION": submission_params_from_toml.get("MODEL_FOR_SUBMISSION", f"lgbm_{FEATURE_SELECTION_PARAMS['TARGET_COLUMN_NAME']}"),
         "LIVE_DATA_FILENAME": submission_params_from_toml.get("LIVE_DATA_FILENAME", "live.parquet")
     }
-
-efficient_frontier_config = read_toml_config('efficient_frontier.toml')
-
-
 else:
     print("Failed to load configuration. Using default values.")
     # Define default values here
@@ -203,6 +199,8 @@ else:
         "MODEL_FOR_SUBMISSION": f"lgbm_{FEATURE_SELECTION_PARAMS['TARGET_COLUMN_NAME']}", # Uses FEATURE_SELECTION_PARAMS defined above
         "LIVE_DATA_FILENAME": "live.parquet"
     }
+
+efficient_frontier_config = read_toml_config('efficient_frontier.toml')
 
 # Ensure NUMERAI_DIR exists
 NUMERAI_DIR = INPUT_DIR.joinpath(NUMERAI_DATASET).parent

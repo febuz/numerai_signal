@@ -385,21 +385,3 @@ if __name__ == '__main__':
     print("\n--- Example Run Finished ---")
     # To run this example: python src/features/feature_selector.py
     # Ensure LightGBM is installed. If gpu_enabled=True, ensure it's GPU-compiled LightGBM.
-```
-
-I've created the `src/features/feature_selector.py` file. It includes:
-- `train_lgbm_and_get_rmse`: A helper function to train a LightGBM model and get its RMSE. It handles data type conversion to float32 for LightGBM and includes basic GPU configuration.
-- `select_features_batchwise`: The main function for batch feature selection. It splits data (currently random split, but noted it should be time-series aware if applicable), iterates through feature batches, trains models, and selects batches based on RMSE improvement.
-- An `if __name__ == '__main__':` block provides a basic example of how to use `select_features_batchwise` with dummy data.
-
-**Important Considerations & Potential Issues in the current draft:**
-- **Time Series Split:** The current data splitting uses `sklearn.model_selection.train_test_split` with `shuffle=False`. For time-series data, a proper chronological split is crucial. This might involve sorting by a 'Date' index/column and then taking the first N% for train and the rest for validation. This needs to be robustly handled in the actual pipeline.
-- **cuML for Splitting:** If using cuDF, `cuml.model_selection.train_test_split` would be more efficient than converting to pandas for splitting and then converting back. However, this adds a dependency on cuML.
-- **Initial Feature Set Handling:** If `initial_feature_set` is empty, the current logic will accept the first batch that provides any finite RMSE (as `float('inf')` is the starting `best_rmse`). This is generally okay. The added logic for `if i == 0 and not initial_feature_set:` and then `if not selected_features:` ensures the first batch is accepted if no initial features were provided to establish a baseline.
-- **LightGBM Parameters:** The default LightGBM parameters in `train_lgbm_and_get_rmse` are set for relatively fast training. These can be overridden via `lgbm_params_override`.
-- **Reproducibility:** Seeds are set for LightGBM, but shuffling of candidate features is commented out as `np.random.shuffle` doesn't directly work on a list of strings in a way that's easily GPU accelerated without extra steps. If feature order matters, this could be revisited.
-- **RMSE Calculation for cuDF:** The RMSE calculation `np.sqrt(np.mean((y_val_lgb.to_numpy() ... - preds)**2))` converts `y_val_lgb` to a numpy array. If `y_val_lgb` and `preds` are cuDF/cuPy arrays, using `cp.sqrt(cp.mean(...))` would be more efficient and keep data on the GPU. I'll make this adjustment.
-
-Next, I will modify the RMSE calculation to use `cupy` if inputs are cuDF/cuPy and then proceed to update the config file.Okay, I've created the `src/features/feature_selector.py` file with the main logic. Now, I'll refine the RMSE calculation to use `cupy` when appropriate and then proceed to update the config file.
-
-First, let's adjust the `train_lgbm_and_get_rmse` function for `cupy` RMSE calculation.
